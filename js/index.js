@@ -293,7 +293,7 @@ $(document).ready(function() {
 			indexNd1 = ND_VALUES.length - 1;
 		}
 		resetProgressBar('#Nd1ProgressBar', indexNd1 + 1, ND_VALUES.length);
-		$('#Nd1Value').text(ND_VALUES[indexNd1]);
+		$('#Nd1Value').text(indexNd1 == 0 ? ND_VALUE_NONE : ND_VALUES[indexNd1]);
 		$('#OdStops1Value').text(getOdStopsText(indexNd1));
 		resetSsOrSsNdValue();
 	}
