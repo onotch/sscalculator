@@ -1,15 +1,23 @@
 @charset "UTF-8";
 
-@import url('https://fonts.googleapis.com/css?family=Exo:300&display=swap');
+@font-face{
+    font-family:'Exo';
+    src:url('../fonts/Exo.woff2') format('woff2');
+}
 
 @font-face{
 	font-family:'Glyphicons Halflings';
 	src:url('../fonts/glyphicons-halflings-regular.ttf') format('truetype');
 }
 
+html {
+    font-size: 4vw;
+}
+
 body, div, h2, p, img{
 	margin:0;
 	padding:0;
+    font-size: 1rem;
 }
 
 body{
@@ -24,15 +32,34 @@ h2, p{
 }
 
 h2{
-	margin: 30px 0px 10px;
-	font-size: 64pt;
+	margin: 1.5rem 0rem 0.5rem;
+	font-size: 1.5rem;
 	color: rgba(255,255,255,0.5);
 	font-weight: normal;
 }
 
+#NdContainer h2{
+	margin-top: 1.2rem;
+}
+
 .Value{
 	color: rgba(255,255,255,1);
-	font-size: 96pt;
+	font-size: 2rem;
+}
+
+.SubValue{
+	margin: 0.2rem 0rem 0rem;
+	color: rgba(255,255,255,0.5);
+	font-size: 1rem;
+}
+
+#NdContainer{
+	padding-top: 0.01rem;
+	background-color: rgba(255,255,255,0.1);
+}
+
+#SsNdContainer{
+	padding-bottom: 2.5rem;
 }
 
 /*
@@ -72,7 +99,7 @@ h2{
 .ProgressBar{
 	width: 100%;
 	height: 2px;
-	margin: 10px 0px 0px;
+	margin: 0.4rem 0rem 0rem;
 	background-color: rgba(255,255,255,0.2);
 }
 .ProgressBar span{
@@ -86,22 +113,49 @@ h2{
 }
 
 #Container{
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	padding-bottom: 100px;
-}
-
-#Ad{
-	width: 100%;
-	height: 160px;
-	color: rgba(0,0,0,0);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 #ArrowIcon{
-	margin: 40px 0px 20px;
+	margin: 1.2rem 0rem 0.5rem;
 	color: rgba(255,255,255,0.5);
-	font-size: 96pt;
+	font-size: 3.5rem;
+}
+
+/*
+ * Credit
+ */
+#Credit{
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.3rem 0rem;
+	background-color: rgba(0,0,0,1);
+}
+
+#Credit p, #Credit svg{
+    color: rgba(255,255,255,0.5);
+}
+
+#Credit p{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+}
+
+#Credit svg{
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: 1.2rem;
+    fill: currentColor;
+}
+
+#Credit a {
+    text-decoration: none;
 }
