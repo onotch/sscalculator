@@ -10,7 +10,17 @@
 	src:url('../fonts/glyphicons-halflings-regular.ttf') format('truetype');
 }
 
-html {
+@keyframes blinkStrong {
+	0%   { color: rgba(64,64,64,1); }
+	100% { color: rgba(255,255,255,1); }
+}
+
+@keyframes blinkWeak {
+	0%   { color: rgba(192,192,192,1); }
+	100% { color: rgba(255,255,255,1); }
+}
+
+ html {
     font-size: 4vw;
 }
 
@@ -53,44 +63,64 @@ h2{
 	font-size: 1rem;
 }
 
+#Container{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
 #NdContainer{
 	padding-top: 0.01rem;
 	background-color: rgba(255,255,255,0.1);
 }
 
 #SsNdContainer{
-	padding-bottom: 2.5rem;
+	padding-bottom: 1.2rem;
 }
 
 /*
  * Glyph Icon
  */
-.GlyphIcon span{
-	position: relative;
-	display: inline-block;
-	font-family: 'Glyphicons Halflings';
+ .GlyphIcon{
+	color: rgba(128,128,128,1);
+	font-size: 3rem;
 	font-style: normal;
 	font-weight: normal;
+	font-family: 'Glyphicons Halflings';
 
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
-.GlyphIconCircleArrowUp:before {
-  content: "\e133";
+
+.GlyphIcon span{
+	position: relative;
+	display: inline-block;
+	margin: 0rem 1.5rem;
 }
-.GlyphIconCircleArrowDown:before {
-  content: "\e134";
-}
+
+.GlyphIconCircleArrowUp:before {   content: "\e133"; }   /* e133 e027 */
+.GlyphIconCircleArrowDown:before { content: "\e134"; }   /* e134 e026 */
+.GlyphIconStart:before {           content: "\e072"; }   /* e072 e023 */
+.GlyphIconPause:before {           content: "\e073"; }
+.GlyphIconStop:before {            content: "\e074"; }
+.GlyphIconRestart:before {         content: "\e030"; }
+.GlyphIconClose:before {           content: "\e083"; }   /* e088 */
 
 .RotateUp{
 	transform: rotate(0deg);
 	transition: transform 0.2s;
-	transition-timing-function: ease;
+	transition-timing-function: ease-out;
 }
 .RotateDown{
 	transform: rotate(180deg);
 	transition: transform 0.2s;
-	transition-timing-function: ease;
+	transition-timing-function: ease-out;
+}
+
+#ArrowIcon{
+	margin: 1.2rem 0rem;
 }
 
 /*
@@ -102,6 +132,7 @@ h2{
 	margin: 0.4rem 0rem 0rem;
 	background-color: rgba(255,255,255,0.2);
 }
+
 .ProgressBar span{
 	display: block;
 	position: relative;
@@ -112,18 +143,8 @@ h2{
 	background-color: rgba(255,255,255,0.7);
 }
 
-#Container{
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-#ArrowIcon{
-	margin: 1.2rem 0rem 0.5rem;
-	color: rgba(255,255,255,0.5);
-	font-size: 3.5rem;
+#SsNdProgressBar{
+	opacity: 0.2;
 }
 
 /*
@@ -158,4 +179,43 @@ h2{
 
 #Credit a {
     text-decoration: none;
+}
+
+/*
+ * Timer
+ */
+ #TimerContainer{
+	display: none;
+    position: fixed;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+	background-color: rgba(0,0,0,0.8);
+}
+
+#TimerContainer p{
+	margin: 3rem 0rem;
+	font-size:3rem;
+}
+
+#TimeValue{
+	color: rgba(255,255,255,1);
+}
+
+#StartTimer{
+	opacity: 0.4;
+}
+
+.BlinkSlow{
+	animation: blinkStrong 1s ease-out infinite alternate;
+}
+
+.BlinkFast{
+	animation: blinkWeak 0.5s ease-out infinite alternate;
 }

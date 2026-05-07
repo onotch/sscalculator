@@ -4,9 +4,12 @@ $(document).ready(function() {
 	var SS_VALUES = [1/8000, 1/6400, 1/5000, 1/4000, 1/3200, 1/2500, 1/2000, 1/1600, 1/1250, 1/1000, 1/800, 1/640,
 		1/500, 1/400, 1/320, 1/250, 1/200, 1/160, 1/125, 1/100, 1/80, 1/60, 1/50, 1/40, 1/30, 1/25, 1/20, 1/15,
 		1/13, 1/10, 1/8, 1/6, 1/5, 1/4, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6, 8, 10, 13,
-		15, 20, 25, 30, 40, 50, 60, 90, 120, 150, 180, 240, 300, 360, 420, 480, 540, 600];
+		15, 20, 25, 30, 40, 50, 60, 90, 120, 150, 180, 240, 300, 360, 420, 480, 540, 600, 900, 1200, 1500, 1800,
+		2400, 3000, 3600];
 	var ND_VALUES = [1, 2, 4, 8, 16, 32, 64, 100, 128, 200, 256, 400, 500, 1000, 2000, 8000, 10000, 16000, 32000, 64000, 100000, 1000000];
-	var ND_VALUE_NONE = 'None';
+
+	var SS_VALUE_INVALID = 'Out of Range',
+		ND_VALUE_INVALID = 'None';
 
 	var UNIT_HR = 'hr',
 		UNIT_MIN = 'min',
@@ -19,6 +22,9 @@ $(document).ready(function() {
 		ID_SS_ND = 4;
 
 	var MOVE_THRESHOLD = 15;
+
+	var ANIMATE_DURATION_OPACITY = 200,
+		ANIMATE_DURATION_MOVE = 100;
 
 	var FONT_SIZE_HEADER = 6,
 		FONT_SIZE_VALUE = 12,
@@ -38,6 +44,9 @@ $(document).ready(function() {
 		indexNd2 = 0,
 		indexNd3 = 0,
 		indexSsNd = 46;   // 5sec, Math.round(SS_VALUES.length / 2); //indexSs;
+
+	var timerId = null;
+	var time = 0;
 
 	// initialize
 	idLastSs = ID_SS;
@@ -114,6 +123,31 @@ $(document).ready(function() {
 		var id = (idLastSs == ID_SS) ? ID_SS_ND : ID_SS;
 		touch(event.clientX, event.clientY, id);
 		release(event.clientX, event.clientY);
+	});
+
+	$('#StartTimer').mousedown(function(event) {
+		event.preventDefault();
+		startTimer();
+	});
+
+	$('#StartPauseTimer').mousedown(function(event) {
+		event.preventDefault();
+		startPauseTimer();
+	});
+
+	$('#StopTimer').mousedown(function(event) {
+		event.preventDefault();
+		closeTimer();
+	});
+
+	$('.GlyphIconRestart').mousedown(function(event) {
+		event.preventDefault();
+		startTimer();
+	});
+
+	$('.GlyphIconClose').mousedown(function(event) {
+		event.preventDefault();
+		closeTimer();
 	});
 
 	//
@@ -293,7 +327,7 @@ $(document).ready(function() {
 			indexNd1 = ND_VALUES.length - 1;
 		}
 		resetProgressBar('#Nd1ProgressBar', indexNd1 + 1, ND_VALUES.length);
-		$('#Nd1Value').text(indexNd1 == 0 ? ND_VALUE_NONE : ND_VALUES[indexNd1]);
+		$('#Nd1Value').text(indexNd1 == 0 ? ND_VALUE_INVALID : ND_VALUES[indexNd1]);
 		$('#OdStops1Value').text(getOdStopsText(indexNd1));
 		resetSsOrSsNdValue();
 	}
@@ -306,7 +340,7 @@ $(document).ready(function() {
 			indexNd2 = ND_VALUES.length - 1;
 		}
 		resetProgressBar('#Nd2ProgressBar', indexNd2 + 1, ND_VALUES.length);
-		$('#Nd2Value').text(indexNd2 == 0 ? ND_VALUE_NONE : ND_VALUES[indexNd2]);
+		$('#Nd2Value').text(indexNd2 == 0 ? ND_VALUE_INVALID : ND_VALUES[indexNd2]);
 		$('#OdStops2Value').text(getOdStopsText(indexNd2));
 		resetSsOrSsNdValue();
 	}
@@ -319,7 +353,7 @@ $(document).ready(function() {
 			indexNd3 = ND_VALUES.length - 1;
 		}
 		resetProgressBar('#Nd3ProgressBar', indexNd3 + 1, ND_VALUES.length);
-		$('#Nd3Value').text(indexNd3 == 0 ? ND_VALUE_NONE : ND_VALUES[indexNd3]);
+		$('#Nd3Value').text(indexNd3 == 0 ? ND_VALUE_INVALID : ND_VALUES[indexNd3]);
 		$('#OdStops3Value').text(getOdStopsText(indexNd3));
 		resetSsOrSsNdValue();
 	}
@@ -331,9 +365,11 @@ $(document).ready(function() {
 		} else if (indexSsNd >= SS_VALUES.length) {
 			indexSsNd = SS_VALUES.length - 1;
 		}
-		$('#SsNdValue').text(getTimeText(SS_VALUES[indexSsNd]));
+		var sec = SS_VALUES[indexSsNd];
+		$('#SsNdValue').text(getTimeText(sec));
 		resetProgressBar('#SsNdProgressBar', indexSsNd + 1, SS_VALUES.length);
 		resetSsValue(SS_VALUES[indexSsNd], ND_VALUES[indexNd1], ND_VALUES[indexNd2], ND_VALUES[indexNd3]);
+		enableStartTimerIcon(sec >= 1 && sec <= Number.MAX_SAFE_INTEGER);
 	}
 
 	function resetSsOrSsNdValue() {
@@ -348,11 +384,22 @@ $(document).ready(function() {
 	}
 
 	function resetSsNdValue(ss, nd1, nd2, nd3) {
-		$('#SsNdValue').text(getTimeText(ss * nd1 * nd2 * nd3));
+		var sec = ss * nd1 * nd2 * nd3;
+		if (sec >= 0 && sec <= Number.MAX_SAFE_INTEGER) {
+			$('#SsNdValue').text(getTimeText(sec));
+		} else {
+			$('#SsNdValue').text(SS_VALUE_INVALID);
+		}
+		enableStartTimerIcon(sec >= 1 && sec <= Number.MAX_SAFE_INTEGER);
 	}
 
 	function resetSsValue(ssnd, nd1, nd2, nd3) {
-		$('#SsValue').text(getTimeText(ssnd / (nd1 * nd2 * nd3)));
+		var sec = nd1 * nd2 * nd3;
+		if (sec > 0 && sec <= Number.MAX_SAFE_INTEGER) {
+			$('#SsValue').text(getTimeText(ssnd / sec));
+		} else {
+			$('#SsValue').text(SS_VALUE_INVALID);
+		}
 	}
 
 	function getTimeText(sec) {
@@ -387,6 +434,20 @@ $(document).ready(function() {
 		return sec.toFixed(1) + UNIT_SEC;
 	}
 
+	function getTimerText(sec) {
+		var h = Math.floor(sec / 3600);
+		if (h < 1) {
+			h = 0;
+		}
+		var m = Math.floor((sec - 3600 * h) / 60);
+		var s = Math.round(sec % 60);
+		return '' + h + ' : ' + zeroPadding(m, 2) + ' : ' + zeroPadding(s, 2);
+	}
+
+	function zeroPadding(num, len){
+		return (Array(len).join('0') + num).slice(-len);
+	}
+
 	function getOdStopsText(indexNd) {
 		return '' + Math.log10(ND_VALUES[indexNd]).toFixed(1) + ' / ' + Math.log2(ND_VALUES[indexNd]).toFixed(1) + ' Stops';
 	}
@@ -410,11 +471,73 @@ $(document).ready(function() {
 
 	function resetProgressBar(id, progress, length) {
 		var width = Math.round(($('#Container').width() / length) * progress);
-		$(id + ' span').stop().clearQueue().animate({'width':width + 'px'}, 100, 'easeOutExpo');
+		$(id + ' span').stop(true, true).animate({'width':width + 'px'}, ANIMATE_DURATION_MOVE, 'easeOutQuart');
 	}
 
 	function enableProgressBar(id, enebled) {
-		$(id).stop().clearQueue().animate({'opacity':(enebled ? 1 : 0.2)}, 200, 'linear');
+		$(id).stop(true, true).animate({'opacity':(enebled ? 1 : 0.2)}, ANIMATE_DURATION_OPACITY, 'linear');
+	}
+
+	function enableStartTimerIcon(enebled) {
+		$('#StartTimer').stop(true, true).animate({'opacity':(enebled ? 1 : 0.4)}, ANIMATE_DURATION_OPACITY, 'linear');
+	}
+
+	function startTimer() {
+		switch (idLastSs) {
+			case ID_SS:
+				time = SS_VALUES[indexSs] * ND_VALUES[indexNd1] * ND_VALUES[indexNd2] * ND_VALUES[indexNd3];
+				break;
+			case ID_SS_ND:
+				time = MSS_VALUES[indexSsNd];
+				break;
+		}
+
+		time = Math.round(time) - 1;
+
+		if (time >= 0 && time <= Number.MAX_SAFE_INTEGER) {
+			$('#TimeValue').text(getTimerText(time));
+			$('#Finished').hide();
+			$('#Timer').show();
+			$('#TimerContainer').css('display', 'flex')
+				.stop(true, true).animate({'opacity':1}, ANIMATE_DURATION_OPACITY, 'linear');
+			clearTimer();
+			startPauseTimer();
+		}
+	}
+
+	function startPauseTimer() {
+		if (timerId === null) {
+			timerId = setInterval(updateTimer, 1000);
+			$('#TimeValue').removeClass('BlinkFast');
+			$('#StartPauseTimer').removeClass('GlyphIconStart');
+			$('#StartPauseTimer').addClass('GlyphIconPause');
+		} else {
+			clearTimer();
+			$('#TimeValue').addClass('BlinkFast');
+			$('#StartPauseTimer').removeClass('GlyphIconPause');
+			$('#StartPauseTimer').addClass('GlyphIconStart');
+		}
+	}
+
+	function closeTimer() {
+		time = 0;
+		clearTimer();
+		$('#TimerContainer').stop(true, true).fadeOut(ANIMATE_DURATION_OPACITY);
+	}
+
+	function updateTimer() {
+		if (time >= 1) {
+			$('#TimeValue').text(getTimerText(--time));
+		} else {
+			clearTimer();
+			$('#Timer').hide();
+			$('#Finished').show();
+		}
+	}
+
+	function clearTimer() {
+		clearInterval(timerId);
+		timerId = null;
 	}
 
 });
